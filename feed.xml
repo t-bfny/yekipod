@@ -6,5 +6,12 @@
     <description>yekipodのポッドキャスト</description>
     <language>ja</language>
     <itunes:author>yekipo</itunes:author>
+
+    <item>
+      <title>Episode 1</title>
+      <enclosure url="https://t-bfny.github.io/yekipod/0203_Watarase.mp3" type="audio/mpeg" length="0"/>
+      <guid>https://t-bfny.github.io/yekipod/0203_Watarase.mp3</guid>
+    </item>
+
   </channel>
 </rss>
