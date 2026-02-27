@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
-  <channel>
-    <title>yekipod</title>
-    <link>https://t-bfny.github.io/yekipod</link>
-    <description>yekipodのポッドキャスト</description>
-    <language>ja</language>
-    <itunes:author>yekipo</itunes:author>
+<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" version="2.0">
+<channel>
+<title>yekipod</title>
+<link>https://t-bfny.github.io/yekipod</link>
+<description>yekipod</description>
+<language>ja</language>
+<itunes:author>yekipo</itunes:author>
+<itunes:category text="Music"/>
+<itunes:image href="https://t-bfny.github.io/yekipod/artwork.jpg"/>
+<itunes:explicit>no</itunes:explicit>
 
-    <item>
-      <title>Episode 1</title>
-      <enclosure url="https://t-bfny.github.io/yekipod/0203_Watarase.mp3" type="audio/mpeg" length="15848448"/>
-      <guid>https://t-bfny.github.io/yekipod/0203_Watarase.mp3</guid>
-    </item>
-
-  </channel>
+<item>
+<title>Episode 1</title>
+<pubDate>Sat, 03 Feb 2024 00:00:00 +0000</pubDate>
+<enclosure url="https://t-bfny.github.io/yekipod/0203_Watarase.mp3" type="audio/mpeg" length="15848448"/>
+<guid>https://t-bfny.github.io/yekipod/0203_Watarase.mp3</guid>
+</item>
+</channel>
 </rss>
