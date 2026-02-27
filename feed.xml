@@ -6,6 +6,9 @@
 <description>yekipod</description>
 <language>ja</language>
 <itunes:author>yekipo</itunes:author>
+  <itunes:owner>
+  <itunes:email>xmxcc141@gmail.com</itunes:email>
+</itunes:owner>
 <itunes:category text="Music"/>
 <itunes:image href="https://t-bfny.github.io/yekipod/mano_1400.png"/>
 <itunes:explicit>no</itunes:explicit>
