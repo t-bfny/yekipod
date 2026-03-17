@@ -67,15 +67,15 @@ const albums = [
     image: "https://t-bfny.github.io/yekipod/artwork/spark.jpg",
     isFavorite: true,
     tracks: [
-      { number: 1, title: "Spark" },
-      { number: 2, title: "In a Trance" },
-      { number: 3, title: "Take Me Away" },
-      { number: 4, title: "Wonderland" },
-      { number: 5, title: "Indulgence" },
-      { number: 6, title: "Dilemma" },
-      { number: 7, title: "What Will Be, Will Be" },
-      { number: 8, title: "Wake Up and Dream" },
-      { number: 9, title: "All's Well" },
+      { number: 1, title: "Spark", src: "https://t-bfny.github.io/yekipod/album/Spark/01%20Spark.m4a" },
+      { number: 2, title: "In a Trance ", src: "https://t-bfny.github.io/yekipod/album/Spark/02%20In%20a%20Trance.m4a" },
+      { number: 3, title: "Take Me Away", src: "https://t-bfny.github.io/yekipod/album/Spark/03%20Take%20Me%20Away.m4a" },
+      { number: 4, title: "Wonderland", src: "https://t-bfny.github.io/yekipod/album/Spark/04%20Wonderland.m4a" },
+      { number: 5, title: "Indulgence", src: "https://t-bfny.github.io/yekipod/album/Spark/05%20Indulgence.m4a" },
+      { number: 6, title: "Dilemma", src: "https://t-bfny.github.io/yekipod/album/Spark/06%20Dilemma.m4a" },
+      { number: 7, title: "What Will Be, Will Be", src: "https://t-bfny.github.io/yekipod/album/Spark/07%20What%20Will%20Be,%20Will%20Be.m4a" },
+      { number: 8, title: "Wake Up and Dream ", src: "https://t-bfny.github.io/yekipod/album/Spark/08%20Wake%20Up%20and%20Dream.m4a" },
+      { number: 9, title: "All's Well", src: "https://t-bfny.github.io/yekipod/album/Spark/09%20All's%20Well.m4a" },
     ]
   },
   { id: 5, title: "Album 5", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
@@ -101,6 +101,8 @@ const allAlbums = Array.from({ length: 28 }, (_, i) => ({
 export default function App() {
   const [selectedAlbum, setSelectedAlbum] = useState(null)
   const sliderRef = useRef(null)
+  const [currentTrack, setCurrentTrack] = useState(null)
+  const audioRef = useRef(null)
 
   const handleMouseMove = (e) => {
     const slider = sliderRef.current
@@ -144,6 +146,8 @@ export default function App() {
                   padding: "10px 0",
                   borderBottom: "1px solid #222",
                   cursor: "pointer",
+                }} onClick={() => {
+                  setCurrentTrack(track);
                 }}>
                   <span style={{ color: "#aaa", width: "20px", textAlign: "right" }}>{track.number}</span>
                   <span>{track.title}</span>
@@ -240,6 +244,30 @@ export default function App() {
           ))}
         </div>
       </div>
+
+      {currentTrack && (
+        <div style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: "#222",
+          padding: "12px 24px",
+          display: "flex",
+          alignItems: "center",
+          gap: "16px",
+          borderTop: "1px solid #333",
+        }}>
+          <span style={{ color: "white" }}>{currentTrack.title}</span>
+          <audio
+            ref={audioRef}
+            src={currentTrack.src}
+            controls
+            autoPlay
+            style={{ flex: 1 }}
+          />
+        </div>
+      )}
 
     </div>
   )
