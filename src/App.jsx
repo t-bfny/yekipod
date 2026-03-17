@@ -171,7 +171,10 @@ export default function App() {
         background: "#111",
         zIndex: 10,
       }}>
-        <h1 style={{ margin: 0, fontSize: "20px" }}>YekiPod</h1>
+        <img
+          src="https://t-bfny.github.io/yekipod/yekipod_logo.png"
+          style={{ height: "32px" }}
+        />
         <div style={{ cursor: "pointer", fontSize: "24px" }}>☰</div>
       </div>
 
