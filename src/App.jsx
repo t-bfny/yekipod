@@ -216,6 +216,32 @@ export default function App() {
             />
           ))}
         </div>
+
+        {/* Play bar */}
+        {currentTrack && (
+          <div style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            background: "#222",
+            padding: "12px 24px",
+            display: "flex",
+            alignItems: "center",
+            gap: "16px",
+            borderTop: "1px solid #333",
+          }}>
+            <span style={{ color: "white" }}>{currentTrack.title}</span>
+            <audio
+              ref={audioRef}
+              src={currentTrack.src}
+              controls
+              autoPlay
+              style={{ flex: 1 }}
+            />
+          </div>
+        )}
+
       </div>
 
       {/* All Albums */}
@@ -245,6 +271,7 @@ export default function App() {
         </div>
       </div>
 
+      {/* Play bar */}
       {currentTrack && (
         <div style={{
           position: "fixed",
