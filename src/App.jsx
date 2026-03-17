@@ -135,12 +135,9 @@ export default function App() {
           <div>
             <h1>{selectedAlbum.title}</h1>
             <div style={{ marginTop: "8px" }}>
-              {[
-                "Arch Linux", "X1", "Arista", "Impreza", "Picoflex",
-                "Reordering", "Destination", "Lanner", "Implicit deny",
-                "Room 1002", "Grand Front", "KOGANEI", "Eucalyptus Night"
-              ].map((track, i) => (
-                <div key={i} style={{
+
+              {(selectedAlbum.tracks || []).map((track) => (
+                <div key={track.number} style={{
                   display: "flex",
                   alignItems: "center",
                   gap: "16px",
@@ -148,8 +145,8 @@ export default function App() {
                   borderBottom: "1px solid #222",
                   cursor: "pointer",
                 }}>
-                  <span style={{ color: "#aaa", width: "20px", textAlign: "right" }}>{i + 1}</span>
-                  <span>{track}</span>
+                  <span style={{ color: "#aaa", width: "20px", textAlign: "right" }}>{track.number}</span>
+                  <span>{track.title}</span>
                 </div>
               ))}
             </div>
