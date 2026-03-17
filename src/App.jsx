@@ -95,7 +95,7 @@ const albums = [
 const allAlbums = Array.from({ length: 28 }, (_, i) => ({
   id: i + 1,
   title: `Album ${i + 1}`,
-  image: "https://t-bfny.github.io/yekipod/zetsuboukun_circle.png",
+  image: "https://t-bfny.github.io/yekipod/mitama.png",
 }))
 
 export default function App() {
