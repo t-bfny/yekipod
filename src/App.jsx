@@ -78,9 +78,9 @@ const albums = [
       { number: 9, title: "All's Well" },
     ]
   },
-  { id: 5, title: "Album 5", image: "https://t-bfny.github.io/yekipod/artwork/album5.jpg" },
-  { id: 6, title: "Album 6", image: "https://t-bfny.github.io/yekipod/artwork/album6.jpg" },
-  { id: 7, title: "Album 7", image: "https://t-bfny.github.io/yekipod/artwork/album7.jpg" },
+  { id: 5, title: "Album 5", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
+  { id: 6, title: "Album 6", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
+  { id: 7, title: "Album 7", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
   { id: 8, title: "Album 8", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
   { id: 9, title: "Album 9", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
   { id: 10, title: "Album 10", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
