@@ -1,13 +1,13 @@
 import { useRef, useState } from "react"
 
 const albums = [
-  { id: 1, title: "Album 1", image: "https://t-bfny.github.io/yekipod/artwork/liveatthevillagevuanguard/artwork.jpg" },
-  { id: 2, title: "Album 2", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 3, title: "Album 3", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 4, title: "Album 4", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 5, title: "Album 5", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 6, title: "Album 6", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 7, title: "Album 7", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
+  { id: 1, title: "Album 1", image: "https://t-bfny.github.io/yekipod/artwork/abyss.jpg" },
+  { id: 2, title: "Album 2", image: "https://t-bfny.github.io/yekipod/artwork/liveatthevillagevuanguard.jpg" },
+  { id: 3, title: "Album 3", image: "https://t-bfny.github.io/yekipod/artwork/pilgrimage.jpg" },
+  { id: 4, title: "Album 4", image: "https://t-bfny.github.io/yekipod/artwork/spark.jpg" },
+  { id: 5, title: "Album 5", image: "https://t-bfny.github.io/yekipod/artwork/album5.jpg" },
+  { id: 6, title: "Album 6", image: "https://t-bfny.github.io/yekipod/artwork/album6.jpg" },
+  { id: 7, title: "Album 7", image: "https://t-bfny.github.io/yekipod/artwork/album7.jpg" },
   { id: 8, title: "Album 8", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
   { id: 9, title: "Album 9", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
   { id: 10, title: "Album 10", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
