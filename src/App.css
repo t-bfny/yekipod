@@ -11,9 +11,11 @@
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
@@ -22,6 +24,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -39,4 +42,85 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Responsive design for the album grid*/
+
+.all-albums-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .all-albums-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .album-detail {
+    padding: 8px !important;
+  }
+
+  .album-detail img,
+  .album-detail>div>div:first-child {
+    width: 200px !important;
+    height: 200px !important;
+  }
+}
+
+/* Long title is hidden */
+
+@media (max-width: 768px) {
+  .album-detail h1 {
+    font-size: 24px;
+    margin: 16px 0;
+    ;
+  }
+}
+
+
+.album-detail>div>div:last-child {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.album-detail span:last-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .track-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+}
+
+/* Album jacket is fixed size */
+
+.album-jacket {
+  width: 200px;
+  height: 200px;
+}
+
+/* jacket image and track title are aligned */
+
+@media (max-width: 768px) {
+  .album-detail-inner {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center;
+  }
+}
+
+/* Jacket is more wide on mobile */
+
+@media (max-width: 768px) {
+  .album-jacket {
+    width: 240px;
+    height: 240px;
+  }
 }
