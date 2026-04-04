@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react"
 import './App.css'
+import { useGoogleLogin } from '@react-oauth/google'
 
 const albums = [
   {
@@ -79,18 +80,18 @@ const albums = [
       { number: 9, title: "All's Well", src: "https://t-bfny.github.io/yekipod/album/Spark/09%20All's%20Well.m4a" },
     ]
   },
-  { id: 5, title: "Album 5", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 6, title: "Album 6", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 7, title: "Album 7", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 8, title: "Album 8", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 9, title: "Album 9", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 10, title: "Album 10", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 11, title: "Album 11", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 12, title: "Album 12", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 13, title: "Album 13", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 14, title: "Album 14", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 15, title: "Album 15", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
-  { id: 16, title: "Album 16", image: "https://t-bfny.github.io/yekipod/mano_1400.png" },
+  { id: 5, title: "Album 5", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
+  { id: 6, title: "Album 6", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
+  { id: 7, title: "Album 7", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
+  { id: 8, title: "Album 8", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
+  { id: 9, title: "Album 9", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
+  { id: 10, title: "Album 10", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
+  { id: 11, title: "Album 11", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
+  { id: 12, title: "Album 12", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
+  { id: 13, title: "Album 13", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
+  { id: 14, title: "Album 14", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
+  { id: 15, title: "Album 15", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
+  { id: 16, title: "Album 16", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
 ]
 
 const allAlbums = Array.from({ length: 28 }, (_, i) => ({
@@ -100,11 +101,17 @@ const allAlbums = Array.from({ length: 28 }, (_, i) => ({
 }))
 
 export default function App() {
+  const [accessToken, setAccessToken] = useState(null)
+  const login = useGoogleLogin({
+    onSuccess: (response) => setAccessToken(response.access_token),
+    scope: 'https://www.googleapis.com/auth/drive.readonly',
+  })
   const [selectedAlbum, setSelectedAlbum] = useState(null)
   const sliderRef = useRef(null)
   const [currentTrack, setCurrentTrack] = useState(null)
   const audioRef = useRef(null)
   const [currentAlbum, setCurrentAlbum] = useState(null)
+  const [driveAlbums, setDriveAlbums] = useState([])
 
 
   useEffect(() => {
@@ -113,6 +120,45 @@ export default function App() {
       audioRef.current.play()
     }
   }, [currentTrack])
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [selectedAlbum]);
+
+
+  useEffect(() => {
+
+    if (!accessToken) return
+
+    const musicFolderId = '1c1z8Wj7ld420FVUG__qGYNN9q9X310y1'
+    const artworkFolderId = '1tRI2Vb4DryCfrV9hPJN8IikNON2jPfRR'
+    console.log('musicFolderId:', musicFolderId)
+    console.log('artworkFolderId:', artworkFolderId)
+
+    Promise.all([
+      fetch(`https://www.googleapis.com/drive/v3/files?q='${musicFolderId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'&fields=files(id,name,starred)`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      }).then(res => res.json()),
+      fetch(`https://www.googleapis.com/drive/v3/files?q='${artworkFolderId}'+in+parents&fields=files(id,name)`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      }).then(res => res.json())
+    ]).then(([albumData, artworkData]) => {
+      console.log('artworkData:', artworkData)
+      const artworkMap = {}
+      artworkData.files.forEach(f => {
+        const name = f.name.replace(/\.[^/.]+$/, '')
+        artworkMap[name] = `https://drive.google.com/thumbnail?id=${f.id}&sz=w400`
+      })
+      console.log('artworkMap:', artworkMap)
+
+      const albums = albumData.files
+        .filter(f => f.name !== 'artwork')
+        .map(f => ({ ...f, image: artworkMap[f.name] || null }))
+
+      setDriveAlbums(albums)
+    })
+  }, [accessToken])
+
 
   const playNext = () => {
     if (!currentAlbum) return
@@ -143,18 +189,28 @@ export default function App() {
   }
 
   return (
-    <div style={{ background: "#111", minHeight: "100vh", color: "white", fontFamily: "sans-serif" }}>
-
+    <div style={{ background: "#111", minHeight: "100vh", color: "white", fontFamily: "sans-serif", paddingBottom: currentTrack ? "70px" : "0px" }}>
+      {!accessToken && (
+        <button onClick={login} style={{ position: "fixed", top: "16px", right: "16px", zIndex: 1000, padding: "8px 16px", background: "#4285f4", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>
+          Googleでログイン
+        </button>
+      )}
       {selectedAlbum ? (
         <>
-          <div style={{ padding: "24px" }} className="album-detail">
-            <button onClick={() => setSelectedAlbum(null)} style={{ background: "none", border: "none", color: "white", fontSize: "16px", cursor: "pointer", marginBottom: "24px" }}>
+          <div style={{ padding: "24px", Width: "100%", textAlign: "left" }} className="album-detail">
+            <button onClick={() => {
+              setSelectedAlbum(null);
+              window.scrollTo(0, 0);
+              setTimeout(() => window.scrollTo(0, 0), 200);
+            }} style={{ background: "none", border: "none", color: "white", fontSize: "16px", cursor: "pointer", marginBottom: "24px" }}>
               ← 戻る
             </button>
             <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }} className="album-detail-inner">
               <div style={{
                 borderRadius: "8px",
-                backgroundImage: `url(${selectedAlbum.image})`,
+                backgroundImage: album.image
+                  ? `url(${album.image})`
+                  : `url(https://drive.google.com/thumbnail?id=1SwH5I9w0qgsylJH5YffEzMmSPzu7hmOv&sz=w400)`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 flexShrink: 0,
@@ -202,15 +258,20 @@ export default function App() {
           </div>
 
           {/* よく使うアルバム */}
-          <div style={{ padding: "24px 0 0 24px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingRight: "24px", marginBottom: "16px" }}>
+          <div style={{ padding: "24px 24px 0 24px", overflow: "hidden" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
               <h2 style={{ margin: 0, fontSize: "16px" }}>よく使うアルバム</h2>
               <span style={{ fontSize: "13px", color: "#aaa", cursor: "pointer" }}>more &gt;&gt;</span>
             </div>
-            <div ref={sliderRef} onMouseMove={handleMouseMove} style={{ display: "flex", overflowX: "hidden", gap: "16px", paddingBottom: "16px", width: "100vw" }}>
-              {albums.map((album) => (
-                <div key={album.id} onClick={() => setSelectedAlbum(album)} style={{
-                  minWidth: "160px", height: "160px", borderRadius: "50%",
+            <div ref={sliderRef} onMouseMove={handleMouseMove} style={{ display: "flex", overflowX: "auto", gap: "16px", paddingBottom: "16px", width: "100%" }}>
+              {albums.filter((album) => album.isFavorite).map((album) => (
+                <div key={album.id} onClick={() => {
+                  setSelectedAlbum(album);
+                  window.scrollTo(0, 0);
+                }} className="favorite-album" style={{
+                  minWidth: "80px",
+                  height: "80px",
+                  borderRadius: "50%",
                   backgroundImage: `url(${album.image})`, backgroundSize: "cover",
                   backgroundPosition: "center", flexShrink: 0, cursor: "pointer",
                 }} />
@@ -225,12 +286,21 @@ export default function App() {
               <span style={{ fontSize: "13px", color: "#aaa", cursor: "pointer" }}>more &gt;&gt;</span>
             </div>
             <div className="all-albums-grid">
-              {allAlbums.map((album) => (
-                <div key={album.id} style={{
+              {driveAlbums.map((album) => (
+                <div key={album.id} onClick={() => {
+                  setSelectedAlbum(album);
+                  window.scrollTo(0, 0);
+                }} style={{
                   aspectRatio: "1", borderRadius: "8px",
-                  backgroundImage: `url(${album.image})`, backgroundSize: "cover",
+                  background: "#333",
+                  backgroundImage: `url(${album.image || 'https://drive.google.com/thumbnail?id=1SwH5I9wOqgsylJH5YffEzMmSPzu7hmOv&sz=w400'})`,
+                  backgroundSize: "cover",
                   backgroundPosition: "center", cursor: "pointer",
-                }} />
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  padding: "8px", textAlign: "center", fontSize: "12px"
+                }}>
+                  {album.image ? null : album.name}
+                </div>
               ))}
             </div>
           </div>
@@ -239,16 +309,19 @@ export default function App() {
 
       {/* 再生バー（共通） */}
       {currentTrack && (
-        <div style={{
+        <div className="player-bar" style={{
           position: "fixed", bottom: 0, left: 0, right: 0,
           background: "#222", padding: "12px 24px",
           display: "flex", alignItems: "center", gap: "16px",
           borderTop: "1px solid #333",
+          zIndex: 100,
         }}>
           <button onClick={playPrev} style={{ background: "none", border: "none", color: "white", fontSize: "20px", cursor: "pointer" }}>⏮</button>
           <button onClick={playNext} style={{ background: "none", border: "none", color: "white", fontSize: "20px", cursor: "pointer" }}>⏭</button>
-          <span style={{ color: "white" }}>{currentTrack.title}</span>
-          <audio ref={audioRef} controls style={{ flex: 1 }} onEnded={playNext} />
+          <span style={{ color: "white" }}>
+            {currentTrack.title}
+          </span>
+          <audio ref={audioRef} controls style={{ width: "100%" }} onEnded={playNext} />
         </div>
       )}
 
