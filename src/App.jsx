@@ -2,109 +2,11 @@ import { useRef, useState, useEffect } from "react"
 import './App.css'
 import { useGoogleLogin } from '@react-oauth/google'
 
-const albums = [
-  {
-    id: 1,
-    title: "abyss",
-    artist: "Chihiro Yamanaka",
-    year: 2007,
-    image: "https://t-bfny.github.io/yekipod/artwork/abyss.jpg",
-    isFavorite: true,
-    tracks: [
-      { number: 1, title: "Lucky Southern", src: "https://t-bfny.github.io/yekipod/album/Abyss/01%20Lucky%20Southern.mp3" },
-      { number: 2, title: "The Root of the Light", src: "https://t-bfny.github.io/yekipod/album/Abyss/02%20The%20Root%20of%20the%20Light.mp3" },
-      { number: 3, title: "Sing, Sing, Sing ~ Give Me a Break", src: "https://t-bfny.github.io/yekipod/album/Abyss/03%20Sing,%20Sing,%20Sing%20-%20Give%20Me%20A%20Break.mp3" },
-      { number: 4, title: "Take Me in Your Arms", src: "https://t-bfny.github.io/yekipod/album/Abyss/04%20Take%20Me%20In%20Your%20Arms.mp3" },
-      { number: 5, title: "For Heaven's Sake", src: "https://t-bfny.github.io/yekipod/album/Abyss/05%20For%20Heaven's%20Sake.mp3" },
-      { number: 6, title: "Giant Steps", src: "https://t-bfny.github.io/yekipod/album/Abyss/06%20Giant%20Steps.mp3" },
-      { number: 7, title: "I'm Gonna Go Fishin'", src: "https://t-bfny.github.io/yekipod/album/Abyss/07%20I'm%20Gonna%20Go%20Fishin'.mp3" },
-      { number: 8, title: "Forest Star", src: "https://t-bfny.github.io/yekipod/album/Abyss/08%20Forest%20Star.mp3" },
-      { number: 9, title: "Being Called", src: "https://t-bfny.github.io/yekipod/album/Abyss/09%20Being%20Called.mp3" },
-      { number: 10, title: "Downtown Loop", src: "https://t-bfny.github.io/yekipod/album/Abyss/10%20Downtown%20Loop.mp3" },
-    ]
-  },
-  {
-    id: 2,
-    title: "Live at the Village Vanguard",
-    artist: "Christian Mcbride Trio",
-    year: 2015,
-    image: "https://t-bfny.github.io/yekipod/artwork/liveatthevillagevanguard.jpg",
-    isFavorite: true,
-    tracks: [
-      { number: 1, title: "Fried Pies" },
-      { number: 2, title: "Band Introduction" },
-      { number: 3, title: "Interlude" },
-      { number: 4, title: "Sand Dune" },
-      { number: 5, title: "The Lady in My Life" },
-      { number: 6, title: "Cherokee" },
-      { number: 7, title: "Good Morning Heartache" },
-      { number: 8, title: "Down by the Riverside" },
-      { number: 9, title: "Car Wash" },
-    ]
-  },
-  {
-    id: 3,
-    title: "pilgrimage",
-    artist: "Michael Brecker",
-    year: 2007,
-    image: "https://t-bfny.github.io/yekipod/artwork/pilgrimage.jpg",
-    isFavorite: true,
-    tracks: [
-      { number: 1, title: "The Mean Time", src: "https://t-bfny.github.io/yekipod/album/Pilgrimage/01%20The%20Mean%20Time.m4a" },
-      { number: 2, title: "Five Months from Midnight", src: "https://t-bfny.github.io/yekipod/album/Pilgrimage/02%20Five%20Months%20From%20Midnight.m4a" },
-      { number: 3, title: "Anagram", src: "https://t-bfny.github.io/yekipod/album/Pilgrimage/03%20Anagram.m4a" },
-      { number: 4, title: "Tumbleweed", src: "https://t-bfny.github.io/yekipod/album/Pilgrimage/04%20Tumbleweed.m4a" },
-      { number: 5, title: "When Can I Kiss You Again", src: "https://t-bfny.github.io/yekipod/album/Pilgrimage/05%20When%20Can%20I%20Kiss%20You%20Again.m4a" },
-      { number: 6, title: "Cardinal Rule", src: "https://t-bfny.github.io/yekipod/album/Pilgrimage/06%20Cardinal%20Rule.m4a" },
-      { number: 7, title: "Half Moon Lane", src: "https://t-bfny.github.io/yekipod/album/Pilgrimage/07%20Half%20Moon%20Lane.m4a" },
-      { number: 8, title: "Loose Threads", src: "https://t-bfny.github.io/yekipod/album/Pilgrimage/08%20Loose%20Threads.m4a" },
-      { number: 9, title: "Pilgrimage", src: "https://t-bfny.github.io/yekipod/album/Pilgrimage/09%20Pilgrimage.m4a" },
-    ]
-  },
-  {
-    id: 4,
-    title: "SPARK",
-    artist: "Hiromi",
-    year: 2016,
-    image: "https://t-bfny.github.io/yekipod/artwork/spark.jpg",
-    isFavorite: true,
-    tracks: [
-      { number: 1, title: "Spark", src: "https://t-bfny.github.io/yekipod/album/Spark/01%20Spark.m4a" },
-      { number: 2, title: "In A Trance ", src: "https://t-bfny.github.io/yekipod/album/Spark/02%20In%20A%20Trance.m4a" },
-      { number: 3, title: "Take Me Away", src: "https://t-bfny.github.io/yekipod/album/Spark/03%20Take%20Me%20Away.m4a" },
-      { number: 4, title: "Wonderland", src: "https://t-bfny.github.io/yekipod/album/Spark/04%20Wonderland.m4a" },
-      { number: 5, title: "Indulgence", src: "https://t-bfny.github.io/yekipod/album/Spark/05%20Indulgence.m4a" },
-      { number: 6, title: "Dilemma", src: "https://t-bfny.github.io/yekipod/album/Spark/06%20Dilemma.m4a" },
-      { number: 7, title: "What Will Be, Will Be", src: "https://t-bfny.github.io/yekipod/album/Spark/07%20What%20Will%20Be,%20Will%20Be.m4a" },
-      { number: 8, title: "Wake Up And Dream ", src: "https://t-bfny.github.io/yekipod/album/Spark/08%20Wake%20Up%20And%20Dream.m4a" },
-      { number: 9, title: "All's Well", src: "https://t-bfny.github.io/yekipod/album/Spark/09%20All's%20Well.m4a" },
-    ]
-  },
-  { id: 5, title: "Album 5", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
-  { id: 6, title: "Album 6", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
-  { id: 7, title: "Album 7", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
-  { id: 8, title: "Album 8", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
-  { id: 9, title: "Album 9", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
-  { id: 10, title: "Album 10", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
-  { id: 11, title: "Album 11", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
-  { id: 12, title: "Album 12", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
-  { id: 13, title: "Album 13", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
-  { id: 14, title: "Album 14", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
-  { id: 15, title: "Album 15", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
-  { id: 16, title: "Album 16", image: "https://t-bfny.github.io/yekipod/mano_1400.png", isFavorite: true },
-]
-
-const allAlbums = Array.from({ length: 28 }, (_, i) => ({
-  id: i + 1,
-  title: `Album ${i + 1}`,
-  image: "https://t-bfny.github.io/yekipod/mitama.png",
-}))
-
 export default function App() {
   const [accessToken, setAccessToken] = useState(null)
   const login = useGoogleLogin({
     onSuccess: (response) => setAccessToken(response.access_token),
-    scope: 'https://www.googleapis.com/auth/drive.readonly',
+    scope: 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file',
   })
   const [selectedAlbum, setSelectedAlbum] = useState(null)
   const sliderRef = useRef(null)
@@ -112,7 +14,61 @@ export default function App() {
   const audioRef = useRef(null)
   const [currentAlbum, setCurrentAlbum] = useState(null)
   const [driveAlbums, setDriveAlbums] = useState([])
+  const [favoritesFileId, setFavoritesFileId] = useState(null)
+  const [favoriteIds, setFavoriteIds] = useState([])
 
+  const selectAlbum = (album) => {
+    setSelectedAlbum(album)
+    window.scrollTo(0, 0)
+
+    fetch(`https://www.googleapis.com/drive/v3/files?q='${album.id}'+in+parents&fields=files(id,name)&orderBy=name`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log('tracks:', data.files)
+        const tracks = data.files
+          .filter(f => f.name.match(/\.(mp3|flac|m4a|wav|mp4)$/i))
+          .map((f, i) => ({
+            number: i + 1,
+            title: f.name.replace(/^\d+[\s._-]*/, '').replace(/\.[^/.]+$/, ''),
+            src: `https://www.googleapis.com/drive/v3/files/${f.id}?alt=media`,
+            id: f.id
+          }))
+        setSelectedAlbum(prev => ({ ...prev, tracks }))
+      })
+  }
+
+  const toggleFavorite = (albumId) => {
+    const newIds = favoriteIds.includes(albumId)
+      ? favoriteIds.filter(id => id !== albumId)  // 既存→削除
+      : [...favoriteIds, albumId]                  // 新規→追加
+
+    setFavoriteIds(newIds)
+
+    fetch(`https://www.googleapis.com/upload/drive/v3/files/${favoritesFileId}?uploadType=media`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newIds)
+    })
+      .then(res => res.json())
+      .then(data => console.log('favorites保存:', data))
+  }
+
+  const playTrack = (track) => {
+    fetch(`https://www.googleapis.com/drive/v3/files/${track.id}?alt=media`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+      .then(res => res.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob)
+        setCurrentTrack({ ...track, src: url })
+        setCurrentAlbum(selectedAlbum)
+      })
+  }
 
   useEffect(() => {
     if (audioRef.current && currentTrack) {
@@ -132,18 +88,67 @@ export default function App() {
 
     const musicFolderId = '1c1z8Wj7ld420FVUG__qGYNN9q9X310y1'
     const artworkFolderId = '1tRI2Vb4DryCfrV9hPJN8IikNON2jPfRR'
+    const configFolderId = '1GSuRQ7pW0T-uR3kIuCbR8ZJQNym4oj1p'
+
     console.log('musicFolderId:', musicFolderId)
     console.log('artworkFolderId:', artworkFolderId)
-
     Promise.all([
-      fetch(`https://www.googleapis.com/drive/v3/files?q='${musicFolderId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'&fields=files(id,name,starred)`, {
+      fetch(`https://www.googleapis.com/drive/v3/files?q='${musicFolderId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'&fields=files(id,name)`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       }).then(res => res.json()),
       fetch(`https://www.googleapis.com/drive/v3/files?q='${artworkFolderId}'+in+parents&fields=files(id,name)`, {
         headers: { Authorization: `Bearer ${accessToken}` }
+      }).then(res => res.json()),
+      fetch(`https://www.googleapis.com/drive/v3/files?q='${configFolderId}'+in+parents+and+name='favorites.json'&fields=files(id,name)`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
       }).then(res => res.json())
-    ]).then(([albumData, artworkData]) => {
+    ]).then(([albumData, artworkData, favData]) => {
+      console.log('albumData:', albumData)
       console.log('artworkData:', artworkData)
+      console.log('favData:', favData)
+
+      // favoritesの初期化
+      let favoritesFileId = null
+
+      if (favData.files.length === 0) {
+        // 初回：favorites.jsonを作成
+        const metadata = {
+          name: 'favorites.json',
+          parents: [configFolderId],
+          mimeType: 'application/json'
+        }
+        const body = JSON.stringify([])  // 中身は空配列
+
+        fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'multipart/related; boundary=boundary'
+          },
+          body: `--boundary\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(metadata)}\r\n--boundary\r\nContent-Type: application/json\r\n\r\n${body}\r\n--boundary--`
+        })
+          .then(res => res.json())
+          .then(file => {
+            console.log('favorites.json作成:', file)
+            setFavoritesFileId(file.id)
+          })
+      } else {
+        setFavoritesFileId(favData.files[0].id)
+        console.log('favorites.json既存ID:', favData.files[0].id)
+
+        fetch(`https://www.googleapis.com/drive/v3/files/${favData.files[0].id}?alt=media`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        })
+          .then(res => res.json())
+          .then(data => {
+            console.log('favorites読み込み:', data)
+            setFavoriteIds(data)
+          })
+      }
+
+      // ...既存のartworkMap処理へ続く
+
+
       const artworkMap = {}
       artworkData.files.forEach(f => {
         const name = f.name.replace(/\.[^/.]+$/, '')
@@ -152,7 +157,7 @@ export default function App() {
       console.log('artworkMap:', artworkMap)
 
       const albums = albumData.files
-        .filter(f => f.name !== 'artwork')
+        .filter(f => f.name !== 'artwork' && f.name !== 'config')
         .map(f => ({ ...f, image: artworkMap[f.name] || null }))
 
       setDriveAlbums(albums)
@@ -164,14 +169,14 @@ export default function App() {
     if (!currentAlbum) return
     const tracks = currentAlbum.tracks || []
     const nextTrack = tracks.find(t => t.number === currentTrack.number + 1)
-    if (nextTrack) setCurrentTrack(nextTrack)
+    if (nextTrack) playTrack(nextTrack)
   }
 
   const playPrev = () => {
     if (!currentAlbum) return
     const tracks = currentAlbum.tracks || []
     const prevTrack = tracks.find(t => t.number === currentTrack.number - 1)
-    if (prevTrack) setCurrentTrack(prevTrack)
+    if (prevTrack) playTrack(prevTrack)
   }
 
   const handleMouseMove = (e) => {
@@ -208,15 +213,15 @@ export default function App() {
             <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }} className="album-detail-inner">
               <div style={{
                 borderRadius: "8px",
-                backgroundImage: album.image
-                  ? `url(${album.image})`
+                backgroundImage: selectedAlbum.image
+                  ? `url(${selectedAlbum.image})`
                   : `url(https://drive.google.com/thumbnail?id=1SwH5I9w0qgsylJH5YffEzMmSPzu7hmOv&sz=w400)`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 flexShrink: 0,
               }} className="album-jacket" />
               <div style={{ minWidth: 0, width: "100%" }}>
-                <h1>{selectedAlbum.title}</h1>
+                <h2>{selectedAlbum.name}</h2>
                 <div style={{ marginTop: "8px" }}>
                   {(selectedAlbum.tracks || []).map((track) => (
                     <div key={track.number} style={{
@@ -227,7 +232,7 @@ export default function App() {
                       borderBottom: "1px solid #222",
                       cursor: "pointer",
                     }} onClick={() => {
-                      setCurrentTrack(track);
+                      playTrack(track);
                       setCurrentAlbum(selectedAlbum);
                     }}>
                       <span style={{ color: "#aaa", width: "20px", textAlign: "right" }}>{track.number}</span>
@@ -264,10 +269,9 @@ export default function App() {
               <span style={{ fontSize: "13px", color: "#aaa", cursor: "pointer" }}>more &gt;&gt;</span>
             </div>
             <div ref={sliderRef} onMouseMove={handleMouseMove} style={{ display: "flex", overflowX: "auto", gap: "16px", paddingBottom: "16px", width: "100%" }}>
-              {albums.filter((album) => album.isFavorite).map((album) => (
+              {driveAlbums.filter((album) => favoriteIds.includes(album.id)).map((album) => (
                 <div key={album.id} onClick={() => {
-                  setSelectedAlbum(album);
-                  window.scrollTo(0, 0);
+                  selectAlbum(album);
                 }} className="favorite-album" style={{
                   minWidth: "80px",
                   height: "80px",
@@ -287,19 +291,33 @@ export default function App() {
             </div>
             <div className="all-albums-grid">
               {driveAlbums.map((album) => (
-                <div key={album.id} onClick={() => {
-                  setSelectedAlbum(album);
-                  window.scrollTo(0, 0);
-                }} style={{
-                  aspectRatio: "1", borderRadius: "8px",
-                  background: "#333",
-                  backgroundImage: `url(${album.image || 'https://drive.google.com/thumbnail?id=1SwH5I9wOqgsylJH5YffEzMmSPzu7hmOv&sz=w400'})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center", cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  padding: "8px", textAlign: "center", fontSize: "12px"
-                }}>
-                  {album.image ? null : album.name}
+                <div key={album.id} style={{ position: "relative" }}>
+                  {/* ⭐ボタン */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()  // アルバム選択と干渉しないように
+                      toggleFavorite(album.id)
+                    }}
+                    style={{
+                      position: "absolute", top: "4px", right: "4px",
+                      background: "none", border: "none",
+                      fontSize: "18px", cursor: "pointer", zIndex: 1
+                    }}
+                  >
+                    {favoriteIds.includes(album.id) ? '⭐' : '☆'}
+                  </button>
+                  {/* 既存のアルバムカード */}
+                  <div onClick={() => { selectAlbum(album); }} style={{
+                    aspectRatio: "1", borderRadius: "8px",
+                    background: "#333",
+                    backgroundImage: `url(${album.image || 'https://drive.google.com/thumbnail?id=1SwH5I9wOqgsylJH5YffEzMmSPzu7hmOv&sz=w400'})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center", cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    padding: "8px", textAlign: "center", fontSize: "12px"
+                  }}>
+                    {album.image ? null : album.name}
+                  </div>
                 </div>
               ))}
             </div>
