@@ -6,7 +6,7 @@ A personal music player that connects to your Google Drive.
 
 - Log in with Google OAuth to stream music from your Google Drive Music folder
 - Mark albums as favorites to pin them at the top
-- Favorites are synced across all devices via `Music/config/favorites.json` on your Drive
+- Favorites are synced across all devices via `music/config/favorites.json` on your Drive
 - Mobile friendly
 
 ## Google Drive Structure
