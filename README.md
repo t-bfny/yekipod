@@ -13,7 +13,7 @@ A personal music player that connects to your Google Drive.
 
 ```
 My Drive/
-└── Music/
+└── music/
     ├── config/
     │   └── favorites.json  (auto-generated)
     ├── artwork/
