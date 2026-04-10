@@ -1,5 +1,5 @@
 # Yekipod
-
+<img width="1671" height="1100" alt="Image" src="https://github.com/user-attachments/assets/8485cff0-73eb-4a8a-84fa-c0feb442e406" />
 A personal music player that connects to your Google Drive.
 
 ## Features
