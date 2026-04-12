@@ -152,3 +152,15 @@
     min-width: 0;
   }
 }
+
+/* YouTube playlists are displayed in a horizontal scrollable grid */
+
+.youtube-playlists-grid {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+}
+
+.playlist-card {
+  min-width: 140px;
+}
