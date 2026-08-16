@@ -420,7 +420,7 @@ export default function App() {
   }
 
   const fetchAlbumTracks = (albumId) =>
-    fetch(`https://www.googleapis.com/drive/v3/files?q='${albumId}'+in+parents&fields=files(id,name)&orderBy=name`, {
+    fetch(`https://www.googleapis.com/drive/v3/files?q='${albumId}'+in+parents+and+trashed=false&fields=files(id,name)&orderBy=name`, {
       headers: { Authorization: `Bearer ${accessToken}` }
     })
       .then(res => res.json())
@@ -565,10 +565,10 @@ export default function App() {
 
   const loadAlbums = () =>
     Promise.all([
-      fetch(`https://www.googleapis.com/drive/v3/files?q='${MUSIC_FOLDER_ID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'&fields=files(id,name)&orderBy=name`, {
+      fetch(`https://www.googleapis.com/drive/v3/files?q='${MUSIC_FOLDER_ID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id,name)&orderBy=name`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       }).then(res => res.json()),
-      fetch(`https://www.googleapis.com/drive/v3/files?q='${ARTWORK_FOLDER_ID}'+in+parents&fields=files(id,name)`, {
+      fetch(`https://www.googleapis.com/drive/v3/files?q='${ARTWORK_FOLDER_ID}'+in+parents+and+trashed=false&fields=files(id,name)`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       }).then(res => res.json())
     ]).then(([albumData, artworkData]) => {
@@ -589,7 +589,7 @@ export default function App() {
     if (!accessToken) return
     loadAlbums()
 
-    fetch(`https://www.googleapis.com/drive/v3/files?q='${CONFIG_FOLDER_ID}'+in+parents+and+name='favorites.json'&fields=files(id,name)`, {
+    fetch(`https://www.googleapis.com/drive/v3/files?q='${CONFIG_FOLDER_ID}'+in+parents+and+name='favorites.json'+and+trashed=false&fields=files(id,name)`, {
       headers: { Authorization: `Bearer ${accessToken}` }
     }).then(res => res.json()).then(favData => {
       if (favData.files.length === 0) {
