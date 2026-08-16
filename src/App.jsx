@@ -51,6 +51,63 @@ function VideoPlayOverlay({ onClick }) {
   )
 }
 
+function YoutubePlayerWithSidebar({ embedSrc, openHref, openLabel, videoStarted, onStart, items, selectedVideoId, onSelectVideo }) {
+  const videoColRef = useRef(null)
+  const [videoColHeight, setVideoColHeight] = useState(null)
+
+  useEffect(() => {
+    if (!videoColRef.current) return
+    const el = videoColRef.current
+    const observer = new ResizeObserver(entries => setVideoColHeight(entries[0].contentRect.height))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", flexWrap: "wrap", maxWidth: "1100px" }}>
+      <div ref={videoColRef} style={{ flex: "1 1 600px", minWidth: 0 }}>
+        <div style={{ aspectRatio: "16 / 9", position: "relative" }}>
+          <iframe
+            width="100%" height="100%" src={embedSrc} frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+          {!videoStarted && <VideoPlayOverlay onClick={onStart} />}
+        </div>
+        <a
+          href={openHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ display: "inline-block", marginTop: "8px", fontSize: "13px", color: "#aaa" }}
+        >
+          {openLabel}
+        </a>
+      </div>
+      {items.length > 0 && (
+        <div className="h-scroll" style={{ width: "280px", flexShrink: 0, overflowY: "auto", maxHeight: videoColHeight || undefined }}>
+          {items.map(item => {
+            const videoId = item.snippet.resourceId.videoId
+            const active = videoId === selectedVideoId
+            return (
+              <div
+                key={item.id}
+                onClick={() => onSelectVideo(videoId)}
+                style={{
+                  display: "flex", gap: "8px", padding: "6px", borderRadius: "4px",
+                  cursor: "pointer", background: active ? "rgba(255,255,255,0.1)" : "transparent",
+                }}
+              >
+                <img src={item.snippet.thumbnails?.default?.url} alt="" style={{ width: "72px", borderRadius: "4px", flexShrink: 0 }} />
+                <span style={{ fontSize: "12px", color: active ? "#fff" : "#ccc" }}>{item.snippet.title}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function PauseIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 18 18" fill="currentColor">
@@ -108,11 +165,39 @@ function formatTime(s) {
 
 const NO_ARTWORK = `${import.meta.env.BASE_URL}nothing_artwork_01.jpg`
 
+const MUSIC_FOLDER_ID = '1c1z8Wj7ld420FVUG__qGYNN9q9X310y1'
+const ARTWORK_FOLDER_ID = '1tRI2Vb4DryCfrV9hPJN8IikNON2jPfRR'
+const CONFIG_FOLDER_ID = '1GSuRQ7pW0T-uR3kIuCbR8ZJQNym4oj1p'
+
+function uploadFileToDrive(accessToken, file, metadata, onProgress) {
+  return new Promise((resolve, reject) => {
+    const boundary = 'yekipod_' + Math.random().toString(36).slice(2)
+    const metadataPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: ${file.type || 'application/octet-stream'}\r\n\r\n`
+    const closingPart = `\r\n--${boundary}--`
+    const body = new Blob([metadataPart, file, closingPart])
+
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart')
+    xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`)
+    xhr.setRequestHeader('Content-Type', `multipart/related; boundary=${boundary}`)
+    xhr.upload.onprogress = (e) => {
+      if (onProgress && e.lengthComputable) onProgress(e.loaded / e.total)
+    }
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve(JSON.parse(xhr.responseText))
+      else reject(new Error(`Upload failed (${xhr.status})`))
+    }
+    xhr.onerror = () => reject(new Error('Upload network error'))
+    xhr.send(body)
+  })
+}
+
 function Logo({ onClick }) {
   return (
     <img
       src={`${import.meta.env.BASE_URL}yekipod_logo.png`}
-      style={{ height: "54px", cursor: "pointer" }}
+      className="yekipod-logo"
+      style={{ cursor: "pointer" }}
       onClick={onClick}
     />
   )
@@ -121,7 +206,7 @@ function Logo({ onClick }) {
 const i18n = {
   en: {
     login: "Login with Google",
-    recentlyUsed: "Recently Used Albums",
+    recentlyUsed: "Favorite Albums",
     allAlbums: "All Albums",
     youTubePlaylists: "YouTube Playlists",
     more: "more >>",
@@ -135,12 +220,24 @@ const i18n = {
     language: "日本語",
     portfolio: "Links",
     rights: "© All rights reserved",
+    upload: "Upload Album",
+    uploadAlbumName: "Album name",
+    uploadArtwork: "Artwork (optional)",
+    uploadTracks: "Tracks",
+    uploadTracksSelected: "file(s) selected",
+    uploadSubmit: "Upload",
+    uploadCreatingFolder: "Creating album folder…",
+    uploadingArtwork: "Uploading artwork…",
+    uploadingTracks: "Uploading tracks",
+    uploadComplete: "Done!",
+    uploadFailed: "Upload failed",
+    close: "Close",
   },
   ja: {
     login: "Googleでログイン",
     recentlyUsed: "よく使うアルバム",
     allAlbums: "すべてのアルバム",
-    youTubePlaylists: "YouTubeプレイリスト",
+    youTubePlaylists: "YouTube再生リスト",
     more: "more >>",
     back: "戻る",
     logout: "ログアウト",
@@ -152,6 +249,18 @@ const i18n = {
     language: "English",
     portfolio: "Links",
     rights: "© All rights reserved",
+    upload: "アルバムをアップロード",
+    uploadAlbumName: "アルバム名",
+    uploadArtwork: "ジャケット(任意)",
+    uploadTracks: "音源ファイル",
+    uploadTracksSelected: "件選択中",
+    uploadSubmit: "アップロード",
+    uploadCreatingFolder: "アルバムフォルダを作成中…",
+    uploadingArtwork: "ジャケットをアップロード中…",
+    uploadingTracks: "曲をアップロード中",
+    uploadComplete: "完了しました！",
+    uploadFailed: "アップロードに失敗しました",
+    close: "閉じる",
   }
 }
 
@@ -164,11 +273,12 @@ export default function App() {
 
   const login = useGoogleLogin({
     onSuccess: (response) => setAccessToken(response.access_token),
-    scope: 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/youtube.readonly'
+    scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/youtube.readonly'
   })
 
   const [selectedAlbum, setSelectedAlbum] = useState(null)
-  const sliderRef = useRef(null)
+  const favoriteSliderRef = useRef(null)
+  const youtubeSliderRef = useRef(null)
   const [currentTrack, setCurrentTrack] = useState(null)
   const audioRef = useRef(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -192,6 +302,15 @@ export default function App() {
   const [playlistItemsCache, setPlaylistItemsCache] = useState({})
   const [selectedVideoId, setSelectedVideoId] = useState(null)
   const [videoStarted, setVideoStarted] = useState(false)
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [uploadAlbumName, setUploadAlbumName] = useState('')
+  const [uploadArtworkFile, setUploadArtworkFile] = useState(null)
+  const [uploadTrackFiles, setUploadTrackFiles] = useState([])
+  const [uploading, setUploading] = useState(false)
+  const [uploadStatus, setUploadStatus] = useState('')
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadErrorMsg, setUploadErrorMsg] = useState('')
+  const [albumSortDesc, setAlbumSortDesc] = useState(false)
 
   const fetchAllPlaylists = async () => {
     let all = []
@@ -217,6 +336,50 @@ export default function App() {
     fetchAllPlaylists()
   }, [accessToken])
 
+  // Smartphone-style momentum scrolling for mouse wheel input: wheel ticks
+  // build up velocity (acceleration while actively scrolling) which then
+  // decays each frame after input stops (deceleration/glide).
+  useEffect(() => {
+    let velocity = 0
+    let rafId = null
+
+    const isInsideScrollable = (target) => {
+      let el = target
+      while (el && el !== document.body) {
+        const style = getComputedStyle(el)
+        if ((style.overflowY === 'auto' || style.overflowY === 'scroll') && el.scrollHeight > el.clientHeight) return true
+        if ((style.overflowX === 'auto' || style.overflowX === 'scroll') && el.scrollWidth > el.clientWidth) return true
+        el = el.parentElement
+      }
+      return false
+    }
+
+    const step = () => {
+      if (Math.abs(velocity) < 0.5) {
+        velocity = 0
+        rafId = null
+        return
+      }
+      window.scrollBy(0, velocity)
+      velocity *= 0.92
+      rafId = requestAnimationFrame(step)
+    }
+
+    const onWheel = (e) => {
+      if (e.target.tagName === 'IFRAME' || isInsideScrollable(e.target)) return
+      e.preventDefault()
+      velocity += e.deltaY
+      velocity = Math.max(-100, Math.min(100, velocity))
+      if (!rafId) rafId = requestAnimationFrame(step)
+    }
+
+    window.addEventListener('wheel', onWheel, { passive: false })
+    return () => {
+      window.removeEventListener('wheel', onWheel)
+      if (rafId) cancelAnimationFrame(rafId)
+    }
+  }, [])
+
   const fetchPlaylistItems = async (playlistId) => {
     let all = []
     let nextPageToken = ''
@@ -232,17 +395,21 @@ export default function App() {
     return all
   }
 
+  const ensurePlaylistItemsLoaded = (playlistId) => {
+    if (!playlistItemsCache[playlistId]) {
+      fetchPlaylistItems(playlistId).then(items =>
+        setPlaylistItemsCache(prev => ({ ...prev, [playlistId]: items }))
+      )
+    }
+  }
+
   const toggleExpandPlaylist = (pl) => {
     setExpandedPlaylistIds(prev => {
       const next = new Set(prev)
       next.has(pl.id) ? next.delete(pl.id) : next.add(pl.id)
       return next
     })
-    if (!playlistItemsCache[pl.id]) {
-      fetchPlaylistItems(pl.id).then(items =>
-        setPlaylistItemsCache(prev => ({ ...prev, [pl.id]: items }))
-      )
-    }
+    ensurePlaylistItemsLoaded(pl.id)
   }
 
   const playVideo = (playlistId, videoId) => {
@@ -300,7 +467,78 @@ export default function App() {
     }).then(res => res.json()).then(data => console.log('favorites保存:', data))
   }
 
+  const uploadNewAlbum = async () => {
+    const name = uploadAlbumName.trim()
+    if (!name || uploadTrackFiles.length === 0) return
+
+    setUploading(true)
+    setUploadErrorMsg('')
+    try {
+      setUploadStatus(t.uploadCreatingFolder)
+      const folderRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          mimeType: 'application/vnd.google-apps.folder',
+          parents: [MUSIC_FOLDER_ID],
+        }),
+      })
+      const folder = await folderRes.json()
+      if (!folder.id) throw new Error(folder.error?.message || 'Folder creation failed')
+
+      if (uploadArtworkFile) {
+        setUploadStatus(t.uploadingArtwork)
+        const ext = uploadArtworkFile.name.split('.').pop()
+        await uploadFileToDrive(accessToken, uploadArtworkFile, {
+          name: `${name}.${ext}`,
+          parents: [ARTWORK_FOLDER_ID],
+        })
+      }
+
+      for (let i = 0; i < uploadTrackFiles.length; i++) {
+        const file = uploadTrackFiles[i]
+        setUploadStatus(`${t.uploadingTracks} (${i + 1}/${uploadTrackFiles.length})`)
+        setUploadProgress(0)
+        await uploadFileToDrive(accessToken, file, {
+          name: file.name,
+          parents: [folder.id],
+        }, setUploadProgress)
+      }
+
+      setUploadStatus(t.uploadComplete)
+      await loadAlbums()
+      setTimeout(() => {
+        setUploadOpen(false)
+        setUploadAlbumName('')
+        setUploadArtworkFile(null)
+        setUploadTrackFiles([])
+        setUploadStatus('')
+        setUploadProgress(0)
+      }, 1200)
+    } catch (err) {
+      setUploadErrorMsg(err.message)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const stopYoutube = () => {
+    setSelectedPlaylist(null)
+    setSelectedVideoId(null)
+    setVideoStarted(false)
+  }
+
+  const startYoutube = () => {
+    if (audioRef.current) audioRef.current.pause()
+    setVideoStarted(true)
+  }
+
   const playTrack = (track) => {
+    stopYoutube()
     fetch(track.src, {
       headers: { Authorization: `Bearer ${accessToken}` }
     })
@@ -325,26 +563,37 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [selectedAlbum]);
 
-  useEffect(() => {
-    if (!accessToken) return
-    const musicFolderId = '1c1z8Wj7ld420FVUG__qGYNN9q9X310y1'
-    const artworkFolderId = '1tRI2Vb4DryCfrV9hPJN8IikNON2jPfRR'
-    const configFolderId = '1GSuRQ7pW0T-uR3kIuCbR8ZJQNym4oj1p'
-
+  const loadAlbums = () =>
     Promise.all([
-      fetch(`https://www.googleapis.com/drive/v3/files?q='${musicFolderId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'&fields=files(id,name)`, {
+      fetch(`https://www.googleapis.com/drive/v3/files?q='${MUSIC_FOLDER_ID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'&fields=files(id,name)&orderBy=name`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       }).then(res => res.json()),
-      fetch(`https://www.googleapis.com/drive/v3/files?q='${artworkFolderId}'+in+parents&fields=files(id,name)`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      }).then(res => res.json()),
-      fetch(`https://www.googleapis.com/drive/v3/files?q='${configFolderId}'+in+parents+and+name='favorites.json'&fields=files(id,name)`, {
+      fetch(`https://www.googleapis.com/drive/v3/files?q='${ARTWORK_FOLDER_ID}'+in+parents&fields=files(id,name)`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       }).then(res => res.json())
-    ]).then(([albumData, artworkData, favData]) => {
+    ]).then(([albumData, artworkData]) => {
+      const artworkMap = {}
+      artworkData.files.forEach(f => {
+        const name = f.name.replace(/\.[^/.]+$/, '')
+        artworkMap[name] = `https://drive.google.com/thumbnail?id=${f.id}&sz=w400`
+      })
 
+      const albums = albumData.files
+        .filter(f => f.name !== 'artwork' && f.name !== 'config')
+        .map(f => ({ ...f, image: artworkMap[f.name] || null }))
+
+      setDriveAlbums(albums)
+    })
+
+  useEffect(() => {
+    if (!accessToken) return
+    loadAlbums()
+
+    fetch(`https://www.googleapis.com/drive/v3/files?q='${CONFIG_FOLDER_ID}'+in+parents+and+name='favorites.json'&fields=files(id,name)`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    }).then(res => res.json()).then(favData => {
       if (favData.files.length === 0) {
-        const metadata = { name: 'favorites.json', parents: [configFolderId], mimeType: 'application/json' }
+        const metadata = { name: 'favorites.json', parents: [CONFIG_FOLDER_ID], mimeType: 'application/json' }
         const body = JSON.stringify([])
         fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
           method: 'POST',
@@ -360,18 +609,6 @@ export default function App() {
           headers: { Authorization: `Bearer ${accessToken}` }
         }).then(res => res.json()).then(data => setFavoriteIds(data))
       }
-
-      const artworkMap = {}
-      artworkData.files.forEach(f => {
-        const name = f.name.replace(/\.[^/.]+$/, '')
-        artworkMap[name] = `https://drive.google.com/thumbnail?id=${f.id}&sz=w400`
-      })
-
-      const albums = albumData.files
-        .filter(f => f.name !== 'artwork' && f.name !== 'config')
-        .map(f => ({ ...f, image: artworkMap[f.name] || null }))
-
-      setDriveAlbums(albums)
     })
   }, [accessToken])
 
@@ -405,8 +642,12 @@ export default function App() {
 
   const togglePlay = () => {
     if (!audioRef.current) return
-    if (audioRef.current.paused) audioRef.current.play()
-    else audioRef.current.pause()
+    if (audioRef.current.paused) {
+      stopYoutube()
+      audioRef.current.play()
+    } else {
+      audioRef.current.pause()
+    }
   }
 
   const seekTo = (t) => {
@@ -434,8 +675,8 @@ export default function App() {
     setShowTrackMenu(false)
   }
 
-  const handleMouseMove = (e) => {
-    const slider = sliderRef.current
+  const handleMouseMove = (ref) => (e) => {
+    const slider = ref.current
     const rect = slider.getBoundingClientRect()
     const x = e.clientX - rect.left
     const width = rect.width
@@ -468,21 +709,6 @@ export default function App() {
       backgroundRepeat: "no-repeat, no-repeat, no-repeat",
       minHeight: "100vh", color: "white", fontFamily: "sans-serif", paddingBottom: currentTrack ? "70px" : "0px"
     }}>
-
-      {/* Login Button */}
-      {!accessToken && (
-        <button onClick={login} style={{
-          position: "fixed", top: "24px", right: "16px", zIndex: 1000,
-          padding: "8px 16px", color: "white", cursor: "pointer",
-          fontFamily: "'Rajdhani', system-ui, Avenir, Helvetica, Arial, sans-serif",
-          fontWeight: 600, letterSpacing: "0.02em", fontSize: "16px",
-          background: "linear-gradient(135deg, rgba(96,138,180,0.85), rgba(32,58,90,0.85))",
-          border: "1px solid rgba(255,255,255,0.15)", borderRadius: "6px",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.35)",
-        }}>
-          {t.login}
-        </button>
-      )}
 
       {/* Drawer Overlay */}
       {drawerOpen && (
@@ -528,6 +754,13 @@ export default function App() {
             <button onClick={() => setDrawerView("favorites")} style={menuItemStyle}>
               {t.favorites}
             </button>
+
+            {/* Upload */}
+            {accessToken && (
+              <button onClick={() => { setUploadOpen(true); setDrawerOpen(false) }} style={menuItemStyle}>
+                {t.upload}
+              </button>
+            )}
 
             {/* Spacer */}
             <div style={{ height: "1px", background: "#333", margin: "8px 20px" }} />
@@ -599,6 +832,103 @@ export default function App() {
         )}
       </div>
 
+      {/* Upload Album Modal */}
+      {uploadOpen && (
+        <div
+          onClick={() => { if (!uploading) setUploadOpen(false) }}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
+            zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "24px",
+          }}
+        >
+          <div onClick={e => e.stopPropagation()} style={{
+            background: "#181818", border: "1px solid #333", borderRadius: "10px",
+            width: "100%", maxWidth: "420px", padding: "24px",
+          }}>
+            <h2 style={{ margin: "0 0 20px", fontSize: "22px" }}>{t.upload}</h2>
+
+            <label style={{ display: "block", fontSize: "13px", color: "#aaa", marginBottom: "6px" }}>{t.uploadAlbumName}</label>
+            <input
+              type="text"
+              value={uploadAlbumName}
+              onChange={e => setUploadAlbumName(e.target.value)}
+              disabled={uploading}
+              style={{
+                width: "100%", padding: "8px 10px", marginBottom: "16px", boxSizing: "border-box",
+                background: "#111", border: "1px solid #333", borderRadius: "6px", color: "white", fontSize: "14px",
+              }}
+            />
+
+            <label style={{ display: "block", fontSize: "13px", color: "#aaa", marginBottom: "6px" }}>{t.uploadArtwork}</label>
+            <input
+              type="file"
+              accept="image/*"
+              disabled={uploading}
+              onChange={e => setUploadArtworkFile(e.target.files[0] || null)}
+              style={{ marginBottom: "16px", fontSize: "13px", color: "#ccc" }}
+            />
+
+            <label style={{ display: "block", fontSize: "13px", color: "#aaa", marginBottom: "6px" }}>{t.uploadTracks}</label>
+            <input
+              type="file"
+              accept="audio/*"
+              multiple
+              disabled={uploading}
+              onChange={e => setUploadTrackFiles([...e.target.files])}
+              style={{ marginBottom: "6px", fontSize: "13px", color: "#ccc" }}
+            />
+            {uploadTrackFiles.length > 0 && (
+              <div style={{ fontSize: "12px", color: "#888", marginBottom: "16px" }}>
+                {uploadTrackFiles.length} {t.uploadTracksSelected}
+              </div>
+            )}
+
+            {uploadStatus && (
+              <div style={{ fontSize: "13px", color: "#ccc", marginBottom: "8px" }}>
+                {uploadStatus}
+                {uploading && uploadStatus.includes(t.uploadingTracks) && ` ${Math.round(uploadProgress * 100)}%`}
+              </div>
+            )}
+            {uploading && (
+              <div style={{ height: "4px", borderRadius: "2px", background: "rgba(255,255,255,0.15)", marginBottom: "16px", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${uploadProgress * 100}%`, background: "#fff" }} />
+              </div>
+            )}
+            {uploadErrorMsg && (
+              <div style={{ fontSize: "13px", color: "#ff6b6b", marginBottom: "16px" }}>
+                {t.uploadFailed}: {uploadErrorMsg}
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setUploadOpen(false)}
+                disabled={uploading}
+                style={{ ...menuItemStyle, width: "auto", padding: "8px 16px", color: "#aaa" }}
+              >
+                {t.close}
+              </button>
+              <button
+                onClick={uploadNewAlbum}
+                disabled={uploading || !uploadAlbumName.trim() || uploadTrackFiles.length === 0}
+                style={{
+                  color: "white", cursor: "pointer", fontSize: "14px",
+                  fontFamily: "'Rajdhani', system-ui, Avenir, Helvetica, Arial, sans-serif",
+                  fontWeight: 600, letterSpacing: "0.03em",
+                  padding: "8px 20px", borderRadius: "6px",
+                  background: "linear-gradient(135deg, rgba(96,138,180,0.85), rgba(32,58,90,0.85))",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  opacity: (uploading || !uploadAlbumName.trim() || uploadTrackFiles.length === 0) ? 0.5 : 1,
+                }}
+              >
+                {t.uploadSubmit}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Album Detail or Home */}
       {selectedAlbum ? (
         <div style={{ padding: "24px", textAlign: "left" }} className="album-detail">
@@ -611,7 +941,7 @@ export default function App() {
           </button>
           <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }} className="album-detail-inner">
             <div style={{
-              borderRadius: "8px",
+              borderRadius: "4px",
               backgroundImage: `url(${selectedAlbum.image || NO_ARTWORK})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
@@ -635,40 +965,49 @@ export default function App() {
         </div>
       ) : listView ? (
         <div style={{ padding: "24px", textAlign: "left" }}>
-          <button onClick={() => setListView(null)} style={backButtonStyle}>
-<BackIcon /> {t.back}
-          </button>
-          <h2 style={{ margin: "0 0 20px" }}>
-            {listView === "recent" ? t.recentlyUsed : listView === "all" ? t.allAlbums : t.youTubePlaylists}
-          </h2>
+          <div style={{ ...sectionHeaderRowStyle, marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8ch" }}>
+              <h2 style={sectionHeadingStyle}>
+                {listView === "recent" ? t.recentlyUsed : listView === "all" ? t.allAlbums : t.youTubePlaylists}
+              </h2>
+              <button onClick={() => setListView(null)} style={{ ...backButtonStyle, marginBottom: 0 }}>
+                <BackIcon /> {t.back}
+              </button>
+            </div>
+            {listView === "all" && (
+              <button
+                onClick={() => setAlbumSortDesc(v => !v)}
+                style={{
+                  background: "none", border: "1px solid #444", borderRadius: "4px",
+                  color: "#ccc", fontSize: "12px", padding: "4px 10px", cursor: "pointer",
+                  flexShrink: 0,
+                }}
+              >
+                A–Z {albumSortDesc ? "↓" : "↑"}
+              </button>
+            )}
+          </div>
 
           {listView === "youtube" ? (
             <>
               {selectedPlaylist && (
-                <div style={{ marginBottom: "24px", maxWidth: "800px" }}>
-                  <div style={{ aspectRatio: "16 / 9", position: "relative" }}>
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      src={(selectedVideoId
-                        ? `https://www.youtube.com/embed/${selectedVideoId}?list=${selectedPlaylist}`
-                        : `https://www.youtube.com/embed/videoseries?list=${selectedPlaylist}`)
-                        + (videoStarted ? "&autoplay=1" : "")}
-                      frameBorder="0"
-                      allowFullScreen
-                    />
-                    {!videoStarted && <VideoPlayOverlay onClick={() => setVideoStarted(true)} />}
-                  </div>
-                  <a
-                    href={selectedVideoId
+                <div style={{ marginBottom: "24px" }}>
+                  <YoutubePlayerWithSidebar
+                    embedSrc={(selectedVideoId
+                      ? `https://www.youtube.com/embed/${selectedVideoId}?list=${selectedPlaylist}`
+                      : `https://www.youtube.com/embed/videoseries?list=${selectedPlaylist}`)
+                      + "&controls=1"
+                      + (videoStarted ? "&autoplay=1" : "")}
+                    openHref={selectedVideoId
                       ? `https://www.youtube.com/watch?v=${selectedVideoId}&list=${selectedPlaylist}`
                       : `https://www.youtube.com/playlist?list=${selectedPlaylist}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ display: "inline-block", marginTop: "8px", fontSize: "13px", color: "#aaa" }}
-                  >
-                    {t.openOnYoutube}
-                  </a>
+                    openLabel={t.openOnYoutube}
+                    videoStarted={videoStarted}
+                    onStart={startYoutube}
+                    items={playlistItemsCache[selectedPlaylist] || []}
+                    selectedVideoId={selectedVideoId}
+                    onSelectVideo={videoId => playVideo(selectedPlaylist, videoId)}
+                  />
                 </div>
               )}
               {playlists.map(pl => (
@@ -699,11 +1038,14 @@ export default function App() {
               ))}
             </>
           ) : (
-            (listView === "recent" ? driveAlbums.filter(a => favoriteIds.includes(a.id)) : driveAlbums).map(album => (
+            (listView === "recent"
+              ? driveAlbums.filter(a => favoriteIds.includes(a.id))
+              : albumSortDesc ? [...driveAlbums].sort((a, b) => b.name.localeCompare(a.name)) : driveAlbums
+            ).map(album => (
               <div key={album.id} style={{ borderBottom: "1px solid #222" }}>
                 <div onClick={() => toggleExpandAlbum(album)} style={{ display: "flex", alignItems: "center", gap: "16px", padding: "12px 0", cursor: "pointer" }}>
                   <div style={{
-                    width: "64px", height: "64px", borderRadius: "8px", flexShrink: 0,
+                    width: "64px", height: "64px", borderRadius: "4px", flexShrink: 0,
                     backgroundImage: `url(${album.image || NO_ARTWORK})`,
                     backgroundSize: "cover", backgroundPosition: "center",
                   }} />
@@ -737,7 +1079,21 @@ export default function App() {
             position: "sticky", top: 0, background: "#111", zIndex: 10,
           }}>
             <Logo onClick={() => { setSelectedAlbum(null); window.scrollTo(0, 0) }} />
-            <div onClick={() => { setDrawerOpen(true); setDrawerView("menu") }} style={{ cursor: "pointer", fontSize: "24px" }}>☰</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              {!accessToken && (
+                <button onClick={login} style={{
+                  padding: "8px 16px", color: "white", cursor: "pointer",
+                  fontFamily: "'Rajdhani', system-ui, Avenir, Helvetica, Arial, sans-serif",
+                  fontWeight: 600, letterSpacing: "0.02em", fontSize: "16px",
+                  background: "linear-gradient(135deg, rgba(96,138,180,0.85), rgba(32,58,90,0.85))",
+                  border: "1px solid rgba(255,255,255,0.15)", borderRadius: "6px",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.25), 0 2px 8px rgba(0,0,0,0.35)",
+                }}>
+                  {t.login}
+                </button>
+              )}
+              <div onClick={() => { setDrawerOpen(true); setDrawerView("menu") }} style={{ cursor: "pointer", fontSize: "24px" }}>☰</div>
+            </div>
           </div>
 
           {/* Recently Used Albums */}
@@ -746,7 +1102,7 @@ export default function App() {
               <h2 style={sectionHeadingStyle}>{t.recentlyUsed}</h2>
               <span onClick={() => setListView("recent")} style={{ fontSize: "13px", color: "#aaa", cursor: "pointer" }}>{t.more}</span>
             </div>
-            <div ref={sliderRef} onMouseMove={handleMouseMove} className="h-scroll" style={{ display: "flex", overflowX: "auto", gap: "16px", paddingBottom: "20px", width: "100%" }}>
+            <div ref={favoriteSliderRef} onMouseMove={handleMouseMove(favoriteSliderRef)} className="h-scroll" style={{ display: "flex", overflowX: "auto", gap: "16px", paddingBottom: "20px", width: "100%" }}>
               {driveAlbums.filter(album => favoriteIds.includes(album.id)).map((album, i) => (
                 <div key={album.id} onClick={() => selectAlbum(album)} className="favorite-album card-enter" style={{
                   minWidth: "80px", height: "80px", borderRadius: "50%",
@@ -780,7 +1136,7 @@ export default function App() {
                     <StarIcon filled={favoriteIds.includes(album.id)} />
                   </button>
                   <div onClick={() => selectAlbum(album)} style={{
-                    aspectRatio: "1", borderRadius: "8px",
+                    aspectRatio: "1", borderRadius: "4px",
                     backgroundImage: `url(${album.image || NO_ARTWORK})`,
                     backgroundSize: "cover", backgroundPosition: "center", cursor: "pointer",
                   }} />
@@ -797,30 +1153,28 @@ export default function App() {
             </div>
             {/* Play Area */}
             {selectedPlaylist && (
-              <div style={{ marginTop: "24px", maxWidth: "800px" }}>
-                <div style={{ aspectRatio: "16 / 9", position: "relative" }}>
-                  <iframe
-                    width="100%"
-                    height="100%"
-                    src={`https://www.youtube.com/embed/videoseries?list=${selectedPlaylist}${videoStarted ? "&autoplay=1" : ""}`}
-                    frameBorder="0"
-                    allowFullScreen
-                  />
-                  {!videoStarted && <VideoPlayOverlay onClick={() => setVideoStarted(true)} />}
-                </div>
-                <a
-                  href={`https://www.youtube.com/playlist?list=${selectedPlaylist}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: "inline-block", marginTop: "8px", fontSize: "13px", color: "#aaa" }}
-                >
-                  {t.openOnYoutube}
-                </a>
+              <div style={{ marginTop: "24px", marginBottom: "24px" }}>
+                <YoutubePlayerWithSidebar
+                  embedSrc={(selectedVideoId
+                    ? `https://www.youtube.com/embed/${selectedVideoId}?list=${selectedPlaylist}`
+                    : `https://www.youtube.com/embed/videoseries?list=${selectedPlaylist}`)
+                    + "&controls=1"
+                    + (videoStarted ? "&autoplay=1" : "")}
+                  openHref={selectedVideoId
+                    ? `https://www.youtube.com/watch?v=${selectedVideoId}&list=${selectedPlaylist}`
+                    : `https://www.youtube.com/playlist?list=${selectedPlaylist}`}
+                  openLabel={t.openOnYoutube}
+                  videoStarted={videoStarted}
+                  onStart={startYoutube}
+                  items={playlistItemsCache[selectedPlaylist] || []}
+                  selectedVideoId={selectedVideoId}
+                  onSelectVideo={videoId => playVideo(selectedPlaylist, videoId)}
+                />
               </div>
             )}
             {/* Playlist Grid */}
-            <div ref={sliderRef}
-              onMouseMove={handleMouseMove}
+            <div ref={youtubeSliderRef}
+              onMouseMove={handleMouseMove(youtubeSliderRef)}
               className="youtube-playlists-grid h-scroll">
               {playlists.map((pl) => (
                 <div
@@ -831,6 +1185,7 @@ export default function App() {
                     setSelectedVideoId(null);
                     setEmbedError(false);
                     setVideoStarted(false);
+                    ensurePlaylistItemsLoaded(pl.id);
                   }}
                 >
                   <img

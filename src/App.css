@@ -126,6 +126,16 @@
   color: #888;
 }
 
+.yekipod-logo {
+  height: 54px;
+}
+
+@media (max-width: 768px) {
+  .yekipod-logo {
+    height: 34px;
+  }
+}
+
 /* Responsive design for the album grid*/
 
 .all-albums-grid {
