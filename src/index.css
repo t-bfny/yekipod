@@ -40,6 +40,20 @@ body {
   min-height: 100vh;
 }
 
+h1,
+h2 {
+  font-family: 'Rajdhani', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+h2 {
+  font-size: clamp(28px, 4vw, 42px);
+  display: inline-block;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
